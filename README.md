@@ -1,6 +1,6 @@
 # M324 TODO
 
-## Configure Remote Server
+## Configure Remote Server for Release
 1. Create github action ssh key:
 ```
  ssh-keygen -t rsa -b 4096 -C "github-actions" -f ~/.ssh/github_actions_key
