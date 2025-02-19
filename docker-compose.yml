@@ -1,0 +1,36 @@
+services:
+  mongodb:
+    image: mongo
+    restart: always
+    container_name: mongodb
+    environment:
+      MONGO_INITDB_DATABASE: todo_app
+      MONGO_INITDB_ROOT_USERNAME: todo_app
+      MONGO_INITDB_ROOT_PASSWORD_FILE: /run/secrets/mongo_pass
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_volume:/data/db
+    secrets:
+      - mongo_pass
+  todo_app:
+    container_name: todo_app
+    build: .
+    restart: always
+    environment:
+      RUST_LOG: info
+      MONGO_HOST: mongodb
+      MONGO_DATABASE: todo_app
+      MONGO_USERNAME: todo_app
+      MONGO_PASSWORD_FILE: /run/secrets/mongo_pass
+    ports:
+      - "80:80"
+    depends_on:
+      - mongodb
+    secrets:
+      - mongo_pass
+volumes:
+  mongo_volume:
+secrets:
+  mongo_pass:
+    file: secrets/mongo_pass.txt
