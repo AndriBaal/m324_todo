@@ -34,9 +34,9 @@ jobs:
       run: |
         ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
           docker load -i /tmp/todo-app.tar
-          docker stop todo-app-container || true
-          docker rm todo-app-container || true
-          docker run -d --name todo-app-container -p 80:80 todo-app:latest
+          docker stop todo_app || true
+          docker rm todo_app || true
+          docker run -d --name todo_app -p 80:80 todo-app:latest
         EOF
 
     - name: Clean Up SSH Key
