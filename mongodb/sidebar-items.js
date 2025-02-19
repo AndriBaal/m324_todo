@@ -1,0 +1,1 @@
+window.SIDEBAR_ITEMS = {"enum":["SearchIndexType","ServerType","TopologyType"],"mod":["action","change_stream","error","event","gridfs","options","results"],"struct":["Client","ClientSession","ClusterTime","Collection","Cursor","Database","IndexModel","Namespace","SearchIndexModel","ServerInfo","SessionCursor","SessionCursorStream"],"type":["BoxFuture"]};
