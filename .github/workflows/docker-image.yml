@@ -33,9 +33,10 @@ jobs:
     - name: Deploy & Restart Container on Remote Server
       run: |
         ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          docker load -i /tmp/todo-app.tar
           docker stop todo_app || true
           docker rm todo_app || true
+          docker rmi todo-app:latest
+          docker load -i /tmp/todo-app.tar
           docker run -d --name todo_app -p 80:80 todo-app:latest
         EOF
 
