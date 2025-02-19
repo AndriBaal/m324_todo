@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Deploy to Remote Server
 
 on:
   push:
@@ -7,12 +7,38 @@ on:
     branches: [ "main" ]
 
 jobs:
-
-  build:
-
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Checkout the repository
+      uses: actions/checkout@v4
+
     - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag todo-app:$(date +%s)
+      run: docker build -t todo-app:latest .
+
+    - name: Save Docker image as tar
+      run: docker save -o todo-app.tar todo-app:latest
+
+    - name: Setup SSH Key
+      run: |
+        mkdir -p ~/.ssh
+        echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+    - name: Copy image to remote server
+      run: scp -P ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa todo-app.tar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/todo-app.tar
+
+    - name: Deploy & Restart Container on Remote Server
+      run: |
+        ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          docker load -i /tmp/todo-app.tar
+          docker stop my-container || true
+          docker rm my-container || true
+          docker run -d --name my-container -p 80:80 todo-app:latest
+        EOF
+
+    - name: Clean Up SSH Key
+      if: always()
+      run: rm -rf ~/.ssh
