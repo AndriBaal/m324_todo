@@ -67,6 +67,7 @@ async fn add_post(
                 id: None,
                 title,
                 description,
+                done: false
             })
             .await
             .unwrap();
