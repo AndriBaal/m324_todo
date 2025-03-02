@@ -7,4 +7,5 @@ pub struct Task {
     pub id: Option<ObjectId>, // MongoDB generates this automatically if not specified
     pub title: String,
     pub description: String,
+    pub done: bool
 }

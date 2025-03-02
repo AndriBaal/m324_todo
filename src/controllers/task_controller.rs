@@ -15,17 +15,12 @@ struct AddTaskForm {
 }
 
 #[derive(Deserialize)]
-struct DeleteTaskForm {
+struct TaskIdForm {
     task_id: ObjectId
 }
 
 #[get("/")]
 async fn index(app: web::Data<AppState>) -> impl Responder {
-    // let user_id = match app.validate_session(&session) {
-    //     Ok(user_id) => user_id,
-    //     Err(_) => return app.redirect_login(),
-    // };
-
     let tasks = app
         .db
         .collection::<Task>("Task")
@@ -35,6 +30,9 @@ async fn index(app: web::Data<AppState>) -> impl Responder {
         .try_collect::<Vec<_>>()
         .await
         .unwrap();
+
+    let mut tasks = tasks;
+    tasks.sort_by_key(|task| task.done);
 
     app.render_template(TaskList { tasks })
 }
@@ -67,6 +65,7 @@ async fn add_post(
                 id: None,
                 title,
                 description,
+                done: false
             })
             .await
             .unwrap();
@@ -80,7 +79,7 @@ async fn add_post(
 #[post("/delete")]
 async fn delete(
     app: web::Data<AppState>,
-    web::Form(form): web::Form<DeleteTaskForm>,
+    web::Form(form): web::Form<TaskIdForm>,
 ) -> impl Responder {
     app
         .db
@@ -89,6 +88,25 @@ async fn delete(
         .await
         .unwrap();
 
+    return app.redirect("/");
+}
+
+
+#[post("/update")]
+async fn update(
+    app: web::Data<AppState>,
+    web::Form(form): web::Form<TaskIdForm>,
+) -> impl Responder {
+    let collection = app.db.collection::<Task>("Task");
+    
+    if let Some(task) = collection.find_one(doc! {"_id": form.task_id}).await.unwrap() {
+        let new_done_status = !task.done;
+        collection.update_one(
+            doc! {"_id": form.task_id},
+            doc! {"$set": {"done": new_done_status}},
+        ).await.unwrap();
+    }
+    
     return app.redirect("/");
 }
 

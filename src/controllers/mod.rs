@@ -43,6 +43,7 @@ pub async fn setup_server(state: AppState) -> std::io::Result<()> {
             .service(task_controller::add_get)
             .service(task_controller::add_post)
             .service(task_controller::delete)
+            .service(task_controller::update)
     })
     .bind(("0.0.0.0", 80))?
     .run()
