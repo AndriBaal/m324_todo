@@ -1,7 +1,12 @@
-// pub mod session;
-// pub mod user;
-pub mod task;
+use crate::app::AppState;
 
-pub fn setup_models() {
-    // session::setup_index()
+pub mod session;
+pub mod task;
+pub mod user;
+
+pub async fn setup_models(app: &AppState) {
+    if app.args.rebuild_indexes {
+        session::setup_index(app).await;
+        user::setup_index(app).await;
+    }
 }

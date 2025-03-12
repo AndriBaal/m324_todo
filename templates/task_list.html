@@ -14,9 +14,9 @@
         <form class="mx-2" method="post" action="/update">
           <input name="task_id" value="{{ task.id.unwrap() }}" type="hidden"/>
           {% if task.done %}
-            <button type="submit" class="btn fa btn-success fa-check"></button>
+            <button type="submit" class="btn btn-success fa fa-check"></button>
           {% else %}
-            <button type="submit" class="btn fa btn-warning fa-wrench"></button>
+            <button type="submit" class="btn btn-warning fa fa-wrench"></button>
           {% endif %}
         </form>
 

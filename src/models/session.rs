@@ -2,13 +2,13 @@ use actix_session::storage::{LoadError, SaveError, SessionKey, SessionStore, Upd
 use actix_web::cookie::time::Duration as TimeDuration;
 use anyhow::Error;
 use bson::serde_helpers::chrono_datetime_as_bson_datetime;
-use chrono::{offset::Utc, DateTime, TimeDelta};
+use chrono::{DateTime, TimeDelta, offset::Utc};
 use log::{error, trace};
 use mongodb::{
+    Collection, Database, IndexModel,
     bson::doc,
     options::IndexOptions,
     results::{InsertOneResult, UpdateResult},
-    Collection, Database, IndexModel,
 };
 use rand::{
     rngs::SmallRng,
@@ -18,32 +18,18 @@ use serde::{Deserialize, Serialize};
 use std::cell::RefCell;
 use std::collections::HashMap;
 
-pub const COLLECTION_NAME: &'static str = "Session";
+use crate::app::AppState;
+
+pub const COLLECTION_NAME: &'static str = "sessions";
 
 thread_local! {
     pub static THREAD_RNG: RefCell<Option<SmallRng>> = const { RefCell::new(None) };
 }
 
-/// Session keys are stored as cookies, therefore they cannot be arbitrary long. Session keys are required to be smaller than 4064 bytes.
-fn generate_session_key() -> String {
-    let mut random: u128 = 0;
+pub async fn setup_index(app: &AppState) {
+    let collection = app.db.collection::<Session>(COLLECTION_NAME);
 
-    THREAD_RNG.with_borrow_mut(|o: &mut Option<SmallRng>| {
-        if o.is_none() {
-            *o = Some(SmallRng::from_rng(&mut rand::rng()));
-        }
-
-        if let Some(rng) = o {
-            random = rng.random();
-        }
-    });
-
-    format!("{random:032x}")
-}
-
-pub async fn connect_and_init(db: &Database) -> MongoSessionStore {
-    let collection = db.collection(COLLECTION_NAME);
-
+    let _ = collection.drop_indexes().await;
     // setup key index
     {
         let options = IndexOptions::builder().unique(true).build();
@@ -77,16 +63,37 @@ pub async fn connect_and_init(db: &Database) -> MongoSessionStore {
             .await
             .expect("unable to setup TTL auto cleanup index");
     }
+}
 
-    MongoSessionStore { collection }
+/// Session keys are stored as cookies, therefore they cannot be arbitrary long. Session keys are required to be smaller than 4064 bytes.
+fn generate_session_key() -> String {
+    let mut random: u128 = 0;
+
+    THREAD_RNG.with_borrow_mut(|o: &mut Option<SmallRng>| {
+        if o.is_none() {
+            *o = Some(SmallRng::from_rng(&mut rand::rng()));
+        }
+
+        if let Some(rng) = o {
+            random = rng.random();
+        }
+    });
+
+    format!("{random:032x}")
+}
+
+pub async fn connect(db: &Database) -> SessionManager {
+    SessionManager {
+        collection: db.collection(COLLECTION_NAME),
+    }
 }
 
 #[derive(Clone)]
-pub struct MongoSessionStore {
-    collection: Collection<Session>,
+pub struct SessionManager {
+    pub collection: Collection<Session>,
 }
 
-impl SessionStore for MongoSessionStore {
+impl SessionStore for SessionManager {
     // Required methods
     async fn load(
         &self,
@@ -194,7 +201,7 @@ impl SessionStore for MongoSessionStore {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Session {
+pub struct Session {
     key: String,
     #[serde(with = "chrono_datetime_as_bson_datetime")]
     valid_until: DateTime<Utc>,
@@ -222,7 +229,6 @@ impl Session {
         .await
         .map_err(|err| {
             error!("Failed to load Session from MongoDB... {err:?}");
-
             err
         })
     }
