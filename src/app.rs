@@ -82,11 +82,11 @@ impl AppState {
         };
         let mongo_host = &args.mongo_host;
         let mongo_port = &args.mongo_port;
-        let uri = format!(
+        let mut uri = format!(
             "mongodb://{}:{}@{}:{}",
             mongo_username, mongo_password, mongo_host, mongo_port
         );
-        log::info!("{uri}");
+        uri.retain(|c| !c.is_whitespace());
 
         // Create a MongoDB client
         let client_options = ClientOptions::parse(&uri).await?;
