@@ -69,6 +69,9 @@ impl AppState {
         env_logger::init();
 
         let args = Args::parse();
+
+        println!("{args:?}");
+
         let mongo_username = &args.mongo_username;
         let mongo_password = if let Some(mongo_password) = args.mongo_password.clone() {
             mongo_password
