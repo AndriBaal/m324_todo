@@ -24,10 +24,20 @@
 <body>
     <div id="wrap" class="d-flex flex-column vh-100">
 		<!-- Header -->
-		<header class="d-flex py-2 bg-primary text-white position-fixed w-100 top-0 z-2">
-			<h2 class="mx-auto">
-				<a class="text-decoration-none text-reset" href="/">App</a>
-			</h2>
+		<header class="d-flex justify-content-between py-2 bg-primary text-white position-fixed w-100 top-0 z-2">
+			<div></div>
+			<div>
+				<h2>
+					<a class="text-decoration-none text-reset" href="/">App</a>
+				</h2>
+			</div>
+			<div>
+				{% if ctx.user_id.is_some() %}
+					<a class="text-white" href="/logout">Logout</a>
+				{% else %}
+					<a class="text-white" href="/login">Login</a>
+				{% endif %}
+			</div>
 		</header>
 
 		<!-- Main Layout -->

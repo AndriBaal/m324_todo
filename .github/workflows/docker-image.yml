@@ -7,7 +7,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
     - name: Checkout the repository
       uses: actions/checkout@v4
@@ -25,17 +24,28 @@ jobs:
         chmod 600 ~/.ssh/id_rsa
         ssh-keyscan -p ${{ secrets.SSH_PORT }} -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
 
-    - name: Copy image to remote server
+    - name: Deploy & Restart Container on Remote Server
+      run: |
+        ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
+          mkdir -p todo-app/secrets
+          echo ${{ secrets.MONGO_PASSWORD }} > todo-app/secrets/mongo_pass.txt
+          echo ${{ secrets.SESSION_SECRET }} > todo-app/secrets/session_secret.txt
+        EOF
+
+    - name: Ensure folders exist in remote server
       run: scp -P ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa todo-app.tar ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:/tmp/todo-app.tar
+
+    - name: Copy docker compose to remote server
+      run: scp -P ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa docker-compose.yml ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:todo-app/docker-compose.yml
 
     - name: Deploy & Restart Container on Remote Server
       run: |
         ssh -p ${{ secrets.SSH_PORT }} -i ~/.ssh/id_rsa ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'EOF'
-          docker stop todo_app || true
-          docker rm todo_app || true
+          cd todo-app
+          docker compose down
           docker rmi todo-app:latest
           docker load -i /tmp/todo-app.tar
-          docker run -d --name todo_app -p 80:80 todo-app:latest
+          docker compose up -d
         EOF
 
     - name: Clean Up SSH Key

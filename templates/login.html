@@ -5,8 +5,8 @@
     <h2 class="text-center mb-3">Login</h2>
     <form action="/login" method="post">
         <div class="mb-3">
-            <label for="email" class="form-label">Email Address</label>
-            <input type="email" class="form-control" id="email" name="email" required>
+            <label for="username" class="form-label">Username</label>
+            <input type="username" class="form-control" id="username" name="username" required>
         </div>
         <div class="mb-3">
             <label for="password" class="form-label">Password</label>
@@ -17,5 +17,8 @@
             <a href="/" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
+    <div class="text-center mt-3">
+        <p>Don't have an account? <a href="/signup">Sign up here</a></p>
+    </div>
 </div>
 {% endblock %}
