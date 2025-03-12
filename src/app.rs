@@ -70,7 +70,7 @@ impl AppState {
 
         let args = Args::parse();
 
-        println!("{args:?}");
+        log::info!("{args:?}");
 
         let mongo_username = &args.mongo_username;
         let mongo_password = if let Some(mongo_password) = args.mongo_password.clone() {
@@ -86,6 +86,7 @@ impl AppState {
             "mongodb://{}:{}@{}:{}",
             mongo_username, mongo_password, mongo_host, mongo_port
         );
+        log::info!("{uri}");
 
         // Create a MongoDB client
         let client_options = ClientOptions::parse(&uri).await?;
