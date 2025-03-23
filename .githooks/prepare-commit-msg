@@ -1,0 +1,11 @@
+#!/bin/bash
+
+COMMIT_MSG_FILE=$1
+COMMIT_MSG=$(head -n1 "$COMMIT_MSG_FILE")
+
+if [[ ! "$COMMIT_MSG" =~ ^\[(FEAT|TEST|CHORE|FIX)\] ]]; then
+    echo "ERROR: Commit message must start with [FEAT], [TEST], [CHORE], or [FIX]."
+    exit 1
+fi
+
+exit 0

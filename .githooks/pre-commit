@@ -1,0 +1,9 @@
+#!/bin/bash
+
+# Run Rust tests before committing
+if ! cargo test --quiet; then
+    echo "ERROR: Rust tests failed. Fix the issues before committing."
+    exit 1
+fi
+
+exit 0
