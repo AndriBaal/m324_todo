@@ -1,5 +1,10 @@
 # M324 TODO
 
+## Setup Git Hooks
+```
+git config --local core.hooksPath .githooks/
+```
+
 ## Run & Debug locally
 
 
